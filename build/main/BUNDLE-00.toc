@@ -1,0 +1,3 @@
+([('main',
+   '/Users/marcogasby/progetti visual studio/PASSW-MANAGER 2.0/dist/main',
+   'EXECUTABLE')],)
