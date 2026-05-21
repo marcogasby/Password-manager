@@ -91,3 +91,21 @@ class DBManager:
             self.save_changes()
 
             
+
+
+    def delete_category(self, name):
+        """Rimuove una categoria e sposta tutte le sue password in Generale """
+        if self.active_data and name in self.active_data["categories"]:
+            # 1. Rimuoviamo la categoria dall'elenco delle categorie
+            self.active_data["categories"].remove(name)
+
+            # 2. Cerchiamo tutte le password che avevano questa categoria e le spostiamo in "Generale"
+            for item in self.active_data["items"]:
+                if item["category"] == name:
+                    item["category"] = "Generale"
+                    item["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+                    # Salviamo le modifiche nel file criptato
+            self.save_changes()
+
+    

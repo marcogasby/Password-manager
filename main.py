@@ -4,15 +4,14 @@
 # python3 main.py
 
 
+
+
 import sys
 import os
 
-# Rileva se l'applicazione sta girando dentro un pacchetto chiuso (.app) o dal terminale
 if getattr(sys, 'frozen', False):
-    # Se è un'app compilata, i file si trovano nella cartella temporanea di PyInstaller
     current_dir = sys._MEIPASS
 else:
-    # Se stiamo usando il terminale, usa la cartella corrente
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
 if current_dir not in sys.path:
@@ -26,19 +25,32 @@ from ui.main_window import MainWindow
 def main():
     app = QApplication(sys.argv)
     
-    # Inizializza il database locale cercando il file nella cartella corretta dell'utente
-    # Mettiamo il database nella cartella Home dell'utente per evitare problemi di permessi sul Desktop
-    db_path = os.path.expanduser("~/vault.json")
-    db_manager = DBManager(filename=db_path)
+    # Iniziamo con un'istanza vuota, il file corretto verrà impostato dinamicamente al login
+    db_manager = DBManager(filename="")
     
     login = LoginWindow(db_manager)
     main_win = None
 
-    def on_login_success():
+    def on_login_success(logged_user):
         nonlocal main_win
-        main_win = MainWindow(db_manager)
+        # Passiamo SIA il db_manager SIA il nome dell'utente loggato alla MainWindow
+        main_win = MainWindow(db_manager, logged_user)
+        main_win.logout_requested.connect(on_logout)
         main_win.show()
         login.close()
+
+    def on_logout():
+        nonlocal main_win
+        if main_win:
+            main_win.close()
+            main_win = None
+        
+        db_manager.active_data = None
+        
+        nonlocal login
+        login = LoginWindow(db_manager)
+        login.login_success.connect(on_login_success)
+        login.show()
 
     login.login_success.connect(on_login_success)
     login.show()
